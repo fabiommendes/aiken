@@ -1,7 +1,34 @@
+import ox
+
 class Aiken:
     """
     Represents the result of parsing an Aiken string.
     """
+    def __init__(self, string):
+        self.question = ""
+        self.options = {}
+        self.answer = ""
+        self.parse(string)
+
+    def parse(self, string):
+        lexer = ox.make_lexer([
+                ('ANSWER', r'ANSWER:\s*[a-zA-Z]'),
+                ('QUESTION', r'.+\n'),
+                ('OPTIONS', r'[a-zA-Z][.)]\s.+\n'),
+            ])
+
+        print(str(lexer(string)[0]))
+
+    def append(self, s):
+        self.options.append(s)
+
+    def __str__(self):
+        print(self.question)
+        for option in self.options:
+            print(option.key + '.' + option.value)
+
+        print("ANSWER: " + self.answer) 
+
 
 
 def load(file_or_string):
