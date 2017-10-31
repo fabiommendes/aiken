@@ -1,5 +1,19 @@
 import ox
 
+
+def make_lexer(rules):
+    regex = '|'.join(r'(?P<%s>%s)' % item for item in rules)
+    regex = re.compile(regex)
+
+    def lexer(expr):
+        for match in re.finditer(regex, expr):
+            typ = match.lastgroup
+            value = match.group(typ)
+            yield Token(typ, value)
+
+    return lexer
+
+
 class Aiken:
     """
     Represents the result of parsing an Aiken string.
@@ -11,13 +25,15 @@ class Aiken:
         self.parse(string)
 
     def parse(self, string):
-        lexer = ox.make_lexer([
-                ('ANSWER', r'ANSWER:\s*[a-zA-Z]'),
-                ('QUESTION', r'.+\n'),
-                ('OPTIONS', r'[a-zA-Z][.)]\s.+\n'),
+        lexer = make_lexer([
+                ('ANSWER', r'\nANSWER:\s*[a-zA-Z]'),
+                ('OPTION', r'\n[a-zA-Z][.)]\s'),
+                ('ANY', r'.+\n'),
             ])
 
-        print(str(lexer(string)[0]))
+
+        print(str(lexer(string)))
+        print(type(lexer))
 
     def append(self, s):
         self.options.append(s)
@@ -27,7 +43,7 @@ class Aiken:
         for option in self.options:
             print(option.key + '.' + option.value)
 
-        print("ANSWER: " + self.answer) 
+        print("ANSWER: " + self.answer)
 
 
 
@@ -53,3 +69,8 @@ def dump(aiken, file=None):
     """
 
     raise NotImplementedError
+
+question = Aiken("""Is this a valid Aiken Question?
+A. Yes
+B. No
+ANSWER: A""")
