@@ -1,47 +1,30 @@
 import ox
 import re
 
-def make_lexer(rules):
-    regex = '|'.join(r'(?P<%s>%s)' % item for item in rules)
-    regex = re.compile(regex)
-
-    def lexer(expr):
-        for match in re.finditer(regex, expr):
-            typ = match.lastgroup
-            value = match.group(typ)
-            yield Token(typ, value)
-
-    return lexer
-
-
 class Aiken:
     """
     Represents the result of parsing an Aiken string.
     """
-    def __init__(self, string):
+    def __init__(self):
         self.question = ""
-        self.options = {}
+        self.full_options = {}
+        self.options = []
         self.answer = ""
-        self.parse(string)
+        self._token_list = []
 
-    def parse(self, string):
-
+    def lexer(self, string):
         lexer = ox.make_lexer([
                 ('ANSWER', r'ANSWER:\s*[a-zA-Z]'),
                 ('OPTION', r'[a-zA-Z][.)]\s'),
                 ('ANY', r'.*\n'),
-        ])        
+        ])
+        
+        return lexer(string)
 
-        tokens_list = ['ANSWER', 'OPTION', 'ANY']
+    def parse(self, string):
 
-        def sav(x):
-            self.answer = x
-            return x
-
-        def quest(x):
-            self.question = x
-            return x
-
+        self._token_list = ['ANSWER', 'OPTION', 'ANY']
+        
         parser = ox.make_parser([
             ('question : cmd options answer', lambda x, y , z: (x.rstrip() , y ,z)),
             ('cmd : cmd ANY', lambda x,y : x+y),
@@ -50,11 +33,15 @@ class Aiken:
             ('options : option', lambda x: [x]),
             ('option : OPTION ANY', lambda x,y: (x.strip('. '),y.strip())),
             ('answer : ANSWER', lambda x: x[7:].strip()),
-        ], tokens_list)
+        ], self._token_list)
         
-        print(parser(lexer(string)))
+        ast = parser(self.lexer(string))
+        print(ast)
+        
+        return ast
 
     def append(self, s):
+        print("teste")
         self.options.append(s)
 
     def __str__(self):
@@ -63,8 +50,6 @@ class Aiken:
             print(option.key + '.' + option.value)
 
         print("ANSWER: " + self.answer)
-
-
 
 def load(file_or_string):
     """
@@ -77,8 +62,16 @@ def load(file_or_string):
     Returns:
         An :cls:`Aiken` instance.
     """
-
-    raise NotImplementedError
+    aiken = Aiken()
+    ast = aiken.parse(file_or_string)
+    for options in ast[1]:
+        for i in range(len(options)):
+            if ((i+1) < len(options)):
+                aiken.full_options[options[i]] = options[i+1]
+        
+    aiken.options = list(aiken.full_options.values())
+    aiken.answer = ast[2]
+    return aiken
 
 
 def dump(aiken, file=None):
@@ -86,10 +79,13 @@ def dump(aiken, file=None):
     Writes aiken object in the given file. If no file is given, return a string
     with the file contents.
     """
+    aiken_dict = list(aiken.full_options.keys())
+    option_letter = aiken_dict[1]
+    print("Proxima letra: " + chr(ord(option_letter)+1)) 
 
-    raise NotImplementedError
 
-question = Aiken("""Is this a valid Aiken Question?
+
+question = load("""Is this a valid Aiken Question?
 ADAFAGSADASD
 
 
@@ -99,3 +95,4 @@ asASdasdasd
 A. Yes
 B. No
 ANSWER: A""")
+dump(question)
