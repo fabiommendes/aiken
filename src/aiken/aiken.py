@@ -1,5 +1,6 @@
 import ox
 import re
+import io
 
 class Aiken:
     """
@@ -63,7 +64,13 @@ def load(file_or_string):
         An :cls:`Aiken` instance.
     """
     aiken = Aiken()
-    ast = aiken.parse(file_or_string)
+    try:
+        file_obj = open(file_or_string)
+        content = file_obj.read()
+        file_obj.close()
+    except:
+        content = file_or_string
+    ast = aiken.parse(content)
     for options in ast[1]:
         for i in range(len(options)):
             if ((i+1) < len(options)):
@@ -80,18 +87,15 @@ def dump(aiken, file=None):
     with the file contents.
     """
     aiken_dict = list(aiken.full_options.keys())
-    option_letter = aiken_dict[1]
+    option_letter = aiken_dict[0][0]
+    print(option_letter)
     print("Proxima letra: " + chr(ord(option_letter)+1)) 
 
 
-
-question = load("""Is this a valid Aiken Question?
+question = load("example.txt")
+question2 = load("""Is this a valid Aiken Question?
 ADAFAGSADASD
-
-
 asASdasdasd
-
-
 A. Yes
 B. No
 ANSWER: A""")
