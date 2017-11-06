@@ -37,12 +37,10 @@ class Aiken:
         ], self._token_list)
         
         ast = parser(self.lexer(string))
-        print(ast)
         
         return ast
 
     def append(self, s):
-        print("teste")
         self.options.append(s)
 
     def __str__(self):
@@ -78,6 +76,7 @@ def load(file_or_string):
         
     aiken.options = list(aiken.full_options.values())
     aiken.answer = ast[2]
+    aiken.question = ast[0]
     return aiken
 
 
@@ -86,17 +85,35 @@ def dump(aiken, file=None):
     Writes aiken object in the given file. If no file is given, return a string
     with the file contents.
     """
-    aiken_dict = list(aiken.full_options.keys())
-    option_letter = aiken_dict[0][0]
-    print(option_letter)
-    print("Proxima letra: " + chr(ord(option_letter)+1)) 
+    aiken_content = ""
 
+    aiken_content += aiken.question + "\n"
+    aiken_dict = aiken.full_options
+    for k, v in sorted(aiken_dict.items()):
+        aiken_content += k + " " + v + "\n"
+    
+    aiken_content += "ANSWER: " +aiken.answer
 
-question = load("example.txt")
-question2 = load("""Is this a valid Aiken Question?
-ADAFAGSADASD
-asASdasdasd
+    if file is not None:
+        file = open(file, "w")
+        file.write(aiken_content)
+        file.close() 
+        return ""
+    else:
+        return aiken_content
+
+    return aiken_content
+
+aiken_with_string = load("""Is this a valid Aiken Question?
 A. Yes
 B. No
 ANSWER: A""")
-dump(question)
+aiken_with_file = load("aiken_example.txt")
+
+dump(aiken_with_string, "dump_with_string.txt")
+dump(aiken_with_file, "dump_with_file.txt")
+
+aiken_without_file = dump(aiken_with_file)
+print("Aiken Without file: \n" +aiken_without_file)
+
+
