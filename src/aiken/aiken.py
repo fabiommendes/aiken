@@ -2,6 +2,34 @@ import ox
 import re
 import io
 
+def lexer(string):
+    
+    lexer = ox.make_lexer([
+            ('ANSWER', r'ANSWER:\s*[a-zA-Z]'),
+            ('OPTION', r'[a-zA-Z][.)]\s'),
+            ('ANY', r'.*\n'),
+    ])
+        
+    return lexer(string)
+
+def parse(string):
+    
+    token_list = ['ANSWER', 'OPTION', 'ANY']
+    
+    parser_exec = ox.make_parser([
+        ('question : cmd options answer', lambda x, y , z: (x.rstrip() , y ,z)),
+        ('cmd : cmd ANY', lambda x,y : x+y),
+        ('cmd : ANY', lambda x: x),
+        ('options : options option', lambda x,y: x + [y]),
+        ('options : option', lambda x: [x]),
+        ('option : OPTION ANY', lambda x,y: (x.strip('. '),y.strip())),
+        ('answer : ANSWER', lambda x: x[7:].strip()),
+        ], token_list)
+        
+    ast = parser_exec(lexer(string))
+        
+    return ast
+
 class Aiken:
     """
     Represents the result of parsing an Aiken string.
@@ -11,37 +39,9 @@ class Aiken:
         self.full_options = {}
         self.options = []
         self.answer = ""
-        self._token_list = []
-
-    def lexer(self, string):
-        lexer = ox.make_lexer([
-                ('ANSWER', r'ANSWER:\s*[a-zA-Z]'),
-                ('OPTION', r'[a-zA-Z][.)]\s'),
-                ('ANY', r'.*\n'),
-        ])
-        
-        return lexer(string)
-
-    def parse(self, string):
-
-        self._token_list = ['ANSWER', 'OPTION', 'ANY']
-        
-        parser = ox.make_parser([
-            ('question : cmd options answer', lambda x, y , z: (x.rstrip() , y ,z)),
-            ('cmd : cmd ANY', lambda x,y : x+y),
-            ('cmd : ANY', lambda x: x),
-            ('options : options option', lambda x,y: x + [y]),
-            ('options : option', lambda x: [x]),
-            ('option : OPTION ANY', lambda x,y: (x.strip('. '),y.strip())),
-            ('answer : ANSWER', lambda x: x[7:].strip()),
-        ], self._token_list)
-        
-        ast = parser(self.lexer(string))
-        
-        return ast
 
     def append(self, s):
-        self.options.append(s)
+        self.options.append(s)        
 
     def __str__(self):
         print(self.question)
@@ -68,7 +68,8 @@ def load(file_or_string):
         file_obj.close()
     except:
         content = file_or_string
-    ast = aiken.parse(content)
+
+    ast = parse(content)
     for options in ast[1]:
         for i in range(len(options)):
             if ((i+1) < len(options)):
@@ -115,5 +116,8 @@ dump(aiken_with_file, "dump_with_file.txt")
 
 aiken_without_file = dump(aiken_with_file)
 print("Aiken Without file: \n" +aiken_without_file)
-
-
+print("AIKEN QUESTION: " + aiken_with_file.question)
+print("AIKEN ANSWERS: " + aiken_with_file.answer)
+print("AIKEN OPTIONS: ")
+for i in aiken_with_file.options:
+    print(i)
