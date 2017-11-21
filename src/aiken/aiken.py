@@ -44,11 +44,14 @@ class Aiken:
         self.options.append(s)        
 
     def __str__(self):
-        print(self.question)
-        for option in self.options:
-            print(option.key + '.' + option.value)
+        string = ''
 
-        print("ANSWER: " + self.answer)
+        string += self.question + '\n'
+        for option in self.options:
+            string += option.key + '.' + option.value + '\n'
+
+        string += 'ANSWER: ' + self.answer
+        return string
 
 def load(file_or_string):
     """
@@ -116,8 +119,4 @@ dump(aiken_with_file, "dump_with_file.txt")
 
 aiken_without_file = dump(aiken_with_file)
 print("Aiken Without file: \n" +aiken_without_file)
-print("AIKEN QUESTION: " + aiken_with_file.question)
-print("AIKEN ANSWERS: " + aiken_with_file.answer)
-print("AIKEN OPTIONS: ")
-for i in aiken_with_file.options:
-    print(i)
+
