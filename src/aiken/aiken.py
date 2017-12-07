@@ -1,6 +1,7 @@
 import ox
 import re
 import io
+import collections
 
 def lexer(string):
     
@@ -22,7 +23,7 @@ def parse(string):
         ('cmd : ANY', lambda x: x),
         ('options : options option', lambda x,y: x + [y]),
         ('options : option', lambda x: [x]),
-        ('option : OPTION ANY', lambda x,y: (x.strip('. '),y.strip())),
+        ('option : OPTION ANY', lambda x,y: (x.strip(),y.strip())),
         ('answer : ANSWER', lambda x: x[7:].strip()),
         ], token_list)
         
@@ -30,7 +31,7 @@ def parse(string):
         
     return ast
 
-class Aiken:
+class Aiken(list):
     """
     Represents the result of parsing an Aiken string.
     """
@@ -41,7 +42,17 @@ class Aiken:
         self.answer = ""
 
     def append(self, s):
-        self.options.append(s)        
+        ord_dict = collections.OrderedDict(sorted(self.full_options.items(), key=lambda t: t[0]))
+        option_letter = list(ord_dict.keys())[-1] # Gets the last alphabetic letter from options
+        next_letter = ""
+        if(")" in option_letter):
+            next_letter = chr(ord(option_letter.rstrip(')'))+1)
+            next_letter += ")" 
+        else:
+            next_letter = chr(ord(option_letter.rstrip('.'))+1)
+            next_letter += "."
+        print("Proxima letra: ", next_letter)
+        self.full_options.update({next_letter: s})        
 
     def __str__(self):
         string = ''
@@ -113,10 +124,8 @@ A. Yes
 B. No
 ANSWER: A""")
 aiken_with_file = load("aiken_example.txt")
-
-dump(aiken_with_string, "dump_with_string.txt")
-dump(aiken_with_file, "dump_with_file.txt")
-
-aiken_without_file = dump(aiken_with_file)
-print("Aiken Without file: \n" +aiken_without_file)
+aiken_with_string.append("Maybe")
+aiken_with_file.append("Shit")
+print(dump(aiken_with_string))
+print(dump(aiken_with_file))
 
