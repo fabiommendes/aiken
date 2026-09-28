@@ -1,3 +1,7 @@
+.. warning::
+
+   This project is no longer maintained. Question authoring is now handled by MDQ, a Markdown format for quizzes and exams.
+
 .. These are the Travis-CI and Coveralls badges for your repository. Replace
    your *github_repository* and uncomment these lines by removing the leading
    two dots.
